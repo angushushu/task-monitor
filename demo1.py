@@ -11,6 +11,7 @@ from PySide6.QtWidgets import QMessageBox
 import components
 import sqlite3
 from datetime import date
+import numpy as np
 
 # Create a database/connect to one
 conn = sqlite3.connect('list.db')
@@ -38,8 +39,10 @@ class Ui_MainWindow(object):
         # for timing
         self.steps = dict()
         self.date = date.today()
+        self.tasks = self.get_tasks()
         print(type(self.date))
         print(self.date)
+
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(698, 390)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
@@ -74,19 +77,26 @@ class Ui_MainWindow(object):
         self.tabs.addTab(self.tab_1, "")
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
+        # self.tabs.tabBarClicked.connect(self.update_records)
 
         self.gridLayout_3 = QtWidgets.QGridLayout(self.tab_2)
         self.gridLayout_3.setObjectName("gridLayout_3")
         self.comboBox = components.CheckableComboBox(parent=self.tab_2)
         self.comboBox.setObjectName("comboBox")
-        tasks = self.get_tasks()
-        self.comboBox.addItems(['a','b'])
-        self.gridLayout_3.addWidget(self.comboBox, 0, 0, 1, 1)
-        self.tableWidget = QtWidgets.QTableWidget(parent=self.tab_2)
+        self.comboBox.popupAboutToBeShown.connect(self.update_tasks)
+        print(self.tasks)
+
+        self.gridLayout_3.addWidget(self.comboBox, 0, 0, 1, 2)
+        self.set_btn = QtWidgets.QPushButton(parent=self.tab_2, clicked=self.set_it)
+        self.set_btn.setObjectName("set_btn")
+        self.gridLayout_3.addWidget(self.set_btn, 0, 2, 1, 1)
+        self.tableWidget = QtWidgets.QTableWidget(0, 0, parent=self.tab_2)
         self.tableWidget.setObjectName("tableWidget")
-        self.tableWidget.setColumnCount(0)
-        self.tableWidget.setRowCount(0)
-        self.gridLayout_3.addWidget(self.tableWidget, 1, 0, 1, 1)
+        self.tableWidget.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        # self.tableWidget.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        # self.tableWidget.setColumnCount(0)
+        # self.tableWidget.setRowCount(0)
+        self.gridLayout_3.addWidget(self.tableWidget, 1, 0, 1, 3)
         self.tabs.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.tabs)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -105,7 +115,89 @@ class Ui_MainWindow(object):
         self.grab_all()
 
     def get_tasks(self):
-        pass
+        # pass
+        conn = sqlite3.connect('list.db')
+        c = conn.cursor()
+        c.execute(f"""
+            SELECT tasks.taskid, tasks.task
+            FROM tasks
+        """)
+        res = c.fetchall()
+        conn.commit()
+        conn.close()
+        return res
+    
+    def update_tasks(self):
+        print('updating')
+        self.tasks = self.get_tasks()
+        task_names = [task[1] for task in self.tasks]
+        self.comboBox.clear()
+        self.comboBox.addItems(task_names)
+
+    def set_it(self):
+        # get tasks
+        selected = self.comboBox.currentData()
+        print(selected)
+        # gain records
+        if len(selected) > 0:
+            conn = sqlite3.connect('list.db')
+            cur = conn.cursor()
+            cur.execute(f"""
+                SELECT tasks.task, records.task, records.date, records.time
+                FROM tasks, records
+                WHERE tasks.taskid=records.task AND tasks.task IN {str(tuple(selected))}
+            """)
+            res = cur.fetchall()
+            cur.execute(f"""
+                SELECT records.date
+                FROM records
+            """)
+            dates = cur.fetchall()
+            print(dates)
+            conn.commit()
+            conn.close()
+            # return res
+            print(res)
+            # res [('1', 1, '2023-05-12', 10), ('2', 2, '2023-05-12', 2)]
+            self.tableWidget.setColumnCount(len(selected)+2)
+            # self.tableWidget.setRowCount(0)
+            date_total = dict()
+            for i in res:
+                if i[2] in date_total:
+                    date_total[i[2]] += i[3]
+                else:
+                    date_total[i[2]] = i[3]
+            table_data = np.zeros((len(date_total), len(selected)), dtype='float64')
+            for r in res:
+                table_data[list(date_total).index(r[2])][selected.index(r[0])] = r[3]
+            temp = np.array([list(date_total.values())])
+            print('temp',temp)
+            print('table_data',table_data)
+            table_data = np.concatenate((table_data, temp.T), axis=1)
+            col_max = table_data.max(axis=0)
+            print('table',table_data)
+            print('col_max',col_max)
+            ratio_data = np.divide(table_data, col_max, out=np.zeros_like(table_data), where=col_max!=0)
+            ratio_data *= 100
+            print(ratio_data)
+            print(ratio_data.shape)
+            if ratio_data.shape[1] < 5:
+                self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+            delegate = components.ProgressDelegate(self.tableWidget)
+            for c in range(0, len(selected)+1):
+                self.tableWidget.setItemDelegateForColumn(c+1, delegate)
+            self.tableWidget.setHorizontalHeaderLabels(['Date']+selected+['Total'])
+            for r in range(len(date_total)):
+                self.tableWidget.insertRow(self.tableWidget.rowCount())
+                print('row:',r)
+                print(list(date_total.keys())[r])
+                date_val = QtWidgets.QTableWidgetItem(list(date_total.keys())[r])
+                self.tableWidget.setItem(r, 0, date_val)
+                for c in range(0, len(selected)+1):
+                    progress = QtWidgets.QTableWidgetItem()
+                    progress.setData(QtCore.Qt.UserRole+1000, ratio_data[r][c])
+                    self.tableWidget.setItem(r, c+1, progress)
 
     # Grab all item form db
     def grab_all(self):
@@ -113,33 +205,40 @@ class Ui_MainWindow(object):
         conn = sqlite3.connect('list.db')
         # Create a cursor
         c = conn.cursor()
+        tasks = self.get_tasks()
+        print('tasks', tasks)
         c.execute(f"""
             SELECT tasks.taskid, tasks.task, records.date, records.time
             FROM tasks, records
             WHERE records.date="{str(self.date)}" AND tasks.taskid=records.task
         """)
-        print(str(self.date))
         records = c.fetchall()
         print('records',records)
         # Commit the changes
         conn.commit()
         conn.close()
-
+        if len(records) < 1:
+            return
+        existing_tasks = []
         for r in records:
             print(r)
             # self.task_list.addItem(str(r[0]))
+            existing_tasks.append(r[0])
             if r[2] == str(self.date):
                 self.add_it(r[1],r[3])
-            self.update_step_display()
-            self.update_ratio()
+        remain_tasks = [t for t in tasks if t[0] not in existing_tasks]
+        for t in remain_tasks:
+            self.add_it(t[1],0)
+        self.update_step_display()
+        self.update_ratio()
     # Add todo
     def add_it(self, name, step):
         print(self.task_edit.text())
         txt = name
         if txt in self.steps.keys():
             msg = QMessageBox()
-            msg.setWindowTitle("任务重复")
-            msg.setText("该任务已存在")
+            msg.setWindowTitle("Repeated")
+            msg.setText("The task already exists")
             msg.setIcon(QMessageBox.Warning)
             x = msg.exec()
             return
@@ -152,13 +251,14 @@ class Ui_MainWindow(object):
         task.set_name(txt)
         self.task_list.addItem(item)
         self.task_list.setItemWidget(item, task)
+
     # Remove todo
     def remove_it(self):
         selected = self.task_list.currentRow()
         if selected < 0:
             msg = QMessageBox()
-            msg.setWindowTitle("没选择")
-            msg.setText("请选择后删除")
+            msg.setWindowTitle("No Selection")
+            msg.setText("Select one task first")
             msg.setIcon(QMessageBox.Warning)
             x = msg.exec()
             return
@@ -166,9 +266,11 @@ class Ui_MainWindow(object):
         remove = self.task_list.itemWidget(self.task_list.item(selected)).label.text()
         self.task_list.takeItem(selected)
         self.steps.pop(remove)
+        # delete db
     # Clear all
     def clear_it(self):
         self.task_list.clear()
+        # clear db
     # Save to db
     def save_it(self):
         conn = sqlite3.connect('list.db')
@@ -196,7 +298,6 @@ class Ui_MainWindow(object):
             res = c.fetchone()
             task_id = res[0]
             print(task_id)
-
             c.execute("""INSERT INTO records VALUES 
                 (:date,:task,:time)
             """,
@@ -209,8 +310,8 @@ class Ui_MainWindow(object):
         conn.commit()
         conn.close()
         msg = QMessageBox()
-        msg.setWindowTitle("内容已保存")
-        msg.setText("列表已录入数据库")
+        msg.setWindowTitle("Succeed")
+        msg.setText("Records saved into database")
         msg.setIcon(QMessageBox.Information)
         x = msg.exec()
     
@@ -230,6 +331,7 @@ class Ui_MainWindow(object):
             t.duration.setText(str(t.step))
 
     def update_ratio(self):
+        print(self.steps)
         max_step = max(self.steps.values())
         for i in range(self.task_list.count()):
             t = self.task_list.itemWidget(self.task_list.item(i))
@@ -240,14 +342,14 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "TaskMonitor"))
         self.add_btn.setText(_translate("MainWindow", "Add"))
         self.clr_btn.setText(_translate("MainWindow", "Clear"))
         self.rmv_btn.setText(_translate("MainWindow", "Remove"))
         self.save_btn.setText(_translate("MainWindow", "Save"))
+        self.set_btn.setText(_translate("MainWindow", "Set"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_1), _translate("MainWindow", "Tab 1"))
         self.tabs.setTabText(self.tabs.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
-
 
 if __name__ == "__main__":
     import sys
