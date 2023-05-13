@@ -1,5 +1,5 @@
 # task-monitor
-A task monitor for self-regulation << I spent too much time on playing recently
+A task monitor for self-regulation
 
 #### How to use (beta version)
 **.exe:**
