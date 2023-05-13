@@ -10,11 +10,14 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QMessageBox
 import components
 import sqlite3
-from datetime import date
+from datetime import datetime, date
 import numpy as np
+import os
 
 # Create a database/connect to one
-conn = sqlite3.connect('list.db')
+db_path = os.path.dirname(__file__) + '\list.db'
+print(db_path)
+conn = sqlite3.connect(db_path)
 # Create a cursor
 c = conn.cursor()
 # Create table todo_list w/ coln list_item
@@ -42,6 +45,10 @@ class Ui_MainWindow(object):
         self.tasks = self.get_tasks()
         print(type(self.date))
         print(self.date)
+        self.timer = QtCore.QTimer()
+        self.timer.setTimerType(QtCore.Qt.PreciseTimer)
+        self.timer.timeout.connect(self.date_changed)
+        self.timer.start(self.time_til_end())
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(698, 390)
@@ -116,7 +123,7 @@ class Ui_MainWindow(object):
 
     def get_tasks(self):
         # pass
-        conn = sqlite3.connect('list.db')
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute(f"""
             SELECT tasks.taskid, tasks.task
@@ -137,15 +144,19 @@ class Ui_MainWindow(object):
     def set_it(self):
         # get tasks
         selected = self.comboBox.currentData()
+        self.tableWidget.setRowCount(0)
+        self.tableWidget.setColumnCount(0)
         print(selected)
         # gain records
         if len(selected) > 0:
-            conn = sqlite3.connect('list.db')
+            conn = sqlite3.connect(db_path)
             cur = conn.cursor()
+            print('str(tuple(selected)):', str(tuple(selected)))
+            check = f'({selected[0]})' if len(selected) == 1 else str(tuple(selected))
             cur.execute(f"""
                 SELECT tasks.task, records.task, records.date, records.time
                 FROM tasks, records
-                WHERE tasks.taskid=records.task AND tasks.task IN {str(tuple(selected))}
+                WHERE tasks.taskid=records.task AND tasks.task IN {check}
             """)
             res = cur.fetchall()
             cur.execute(f"""
@@ -181,7 +192,7 @@ class Ui_MainWindow(object):
             ratio_data *= 100
             print(ratio_data)
             print(ratio_data.shape)
-            if ratio_data.shape[1] < 5:
+            if ratio_data.shape[1] < 10:
                 self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
 
             delegate = components.ProgressDelegate(self.tableWidget)
@@ -202,7 +213,7 @@ class Ui_MainWindow(object):
     # Grab all item form db
     def grab_all(self):
         # Create a database/connect to one
-        conn = sqlite3.connect('list.db')
+        conn = sqlite3.connect(db_path)
         # Create a cursor
         c = conn.cursor()
         tasks = self.get_tasks()
@@ -231,6 +242,12 @@ class Ui_MainWindow(object):
             self.add_it(t[1],0)
         self.update_step_display()
         self.update_ratio()
+
+    def time_til_end(self):
+        dt = datetime.now()
+        rem = 1000*(((24 - dt.hour - 1) * 60 + (60 - dt.minute - 1)) * 60 + (60 - dt.second -1)) + 1000 - dt.microsecond
+        print(rem)
+        return rem
 
     # Add todo
     def add_it(self, name, step):
@@ -274,7 +291,7 @@ class Ui_MainWindow(object):
         self.task_list.takeItem(selected)
         self.steps.pop(remove)
         # delete db
-        conn = sqlite3.connect('list.db')
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute(f"""
             SELECT taskid from tasks where task="{remove}"
@@ -299,7 +316,7 @@ class Ui_MainWindow(object):
             return
         print('clearning')
         self.task_list.clear()
-        conn = sqlite3.connect('list.db')
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute(f"""
             DELETE FROM tasks
@@ -312,7 +329,15 @@ class Ui_MainWindow(object):
 
     # Save to db
     def save_it(self):
-        conn = sqlite3.connect('list.db')
+        self.save_auto()
+        msg = QMessageBox()
+        msg.setWindowTitle("Succeed")
+        msg.setText("Records saved into database")
+        msg.setIcon(QMessageBox.Information)
+        x = msg.exec()
+
+    def save_auto(self):
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         # Clear db table
         c.execute(f"""
@@ -345,14 +370,8 @@ class Ui_MainWindow(object):
                     'task': task_id,
                     'time': self.task_list.itemWidget(self.task_list.item(i)).step
                 })
-
         conn.commit()
         conn.close()
-        msg = QMessageBox()
-        msg.setWindowTitle("Succeed")
-        msg.setText("Records saved into database")
-        msg.setIcon(QMessageBox.Information)
-        x = msg.exec()
     
     def start_stop(self, task):
         if not task.timer.isActive():
@@ -378,6 +397,25 @@ class Ui_MainWindow(object):
                 t.progress.setValue(0)
             else:
                 t.progress.setValue(int(100*(float(t.step)/max_step)))
+    
+    def date_changed(self):
+        self.timer.stop()
+        running = []
+        for i in range(self.task_list.count()):
+            t = self.task_list.itemWidget(self.task_list.item(i))
+            if t.timer.isActive():
+                running.append(t)
+                t.timer.stop()
+        self.save_auto()
+        self.date = date.today()
+        self.timer.start(self.time_til_end())
+        for k,v in self.steps:
+            self.steps[k] = 0
+        for i in range(self.task_list.count()):
+            self.task_list.itemWidget(self.task_list.item(i)).set_step(self.steps[k])
+        self.update_step_display()
+        for t in running:
+            t.timer.start(1000)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
