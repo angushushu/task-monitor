@@ -231,6 +231,7 @@ class Ui_MainWindow(object):
             self.add_it(t[1],0)
         self.update_step_display()
         self.update_ratio()
+
     # Add todo
     def add_it(self, name, step):
         print(self.task_edit.text())
@@ -262,15 +263,53 @@ class Ui_MainWindow(object):
             msg.setIcon(QMessageBox.Warning)
             x = msg.exec()
             return
+        msg = QMessageBox()
+        msg.setWindowTitle("Remove?")
+        ret = msg.question(self.tab_2, '', "This will remove all records of the task")
+        msg.setIcon(QMessageBox.Warning)
+        if ret == QMessageBox.No:
+            return
         # self.task_edit.setText(str(selected))
         remove = self.task_list.itemWidget(self.task_list.item(selected)).label.text()
         self.task_list.takeItem(selected)
         self.steps.pop(remove)
         # delete db
+        conn = sqlite3.connect('list.db')
+        c = conn.cursor()
+        c.execute(f"""
+            SELECT taskid from tasks where task="{remove}"
+        """)
+        remove_id = c.fetchone()
+        c.execute(f"""
+            DELETE FROM tasks WHERE taskid={remove_id[0]}
+        """)
+        c.execute(f"""
+            DELETE FROM records WHERE task={remove_id[0]}
+        """)
+        conn.commit()
+        conn.close()
+
     # Clear all
     def clear_it(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("Clear?")
+        ret = msg.question(self.tab_2, '', "This will remove all records from the database")
+        msg.setIcon(QMessageBox.Warning)
+        if ret == QMessageBox.No:
+            return
+        print('clearning')
         self.task_list.clear()
-        # clear db
+        conn = sqlite3.connect('list.db')
+        c = conn.cursor()
+        c.execute(f"""
+            DELETE FROM tasks
+        """)
+        c.execute(f"""
+            DELETE FROM records
+        """)
+        conn.commit()
+        conn.close()
+
     # Save to db
     def save_it(self):
         conn = sqlite3.connect('list.db')
@@ -348,8 +387,8 @@ class Ui_MainWindow(object):
         self.rmv_btn.setText(_translate("MainWindow", "Remove"))
         self.save_btn.setText(_translate("MainWindow", "Save"))
         self.set_btn.setText(_translate("MainWindow", "Set"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_1), _translate("MainWindow", "Tab 1"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_1), _translate("MainWindow", "Today"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_2), _translate("MainWindow", "Across days"))
 
 if __name__ == "__main__":
     import sys
