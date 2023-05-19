@@ -17,7 +17,7 @@ class View(QtWidgets.QWidget):
         self.MainWindow = MainWindow
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(698, 390)
-        pixmap = QtGui.QPixmap(os.path.dirname(__file__)+"\icon.png")
+        pixmap = QtGui.QPixmap(os.path.dirname(__file__)+"\icon.ico")
         icon = QtGui.QIcon(pixmap)
         self.MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
