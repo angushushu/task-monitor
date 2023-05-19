@@ -1,9 +1,10 @@
 # task-monitor
-A task monitor for self-regulation << I spent too much time on playing recently
+A task monitor for self-regulation
 
 #### How to use (beta version)
-pip install numpy
-
-pip install pyside6
-
+**.exe:**
+Download the beta version and unzip, double click the demo1.exe in dist folder<br>
+**.py:**
+pip install numpy<br>
+pip install pyside6<br>
 python3 demo1.py
