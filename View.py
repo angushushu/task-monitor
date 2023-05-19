@@ -8,12 +8,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtWidgets import QMessageBox
 import Components
-import sqlite3
-from datetime import datetime, date
-import numpy as np
 import os
-
-from apscheduler.schedulers.qt import QtScheduler
 
 class View(QtWidgets.QWidget):
     def __init__(self, MainWindow, Model):
@@ -22,6 +17,9 @@ class View(QtWidgets.QWidget):
         self.MainWindow = MainWindow
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(698, 390)
+        pixmap = QtGui.QPixmap(os.path.dirname(__file__)+"\icon.png")
+        icon = QtGui.QIcon(pixmap)
+        self.MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)

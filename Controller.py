@@ -1,8 +1,3 @@
-from apscheduler.schedulers.qt import QtScheduler
-from PySide6 import QtCore
-
-
-
 class Controller:
     def __init__(self, model, view):
         self.view = view

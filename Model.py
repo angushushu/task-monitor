@@ -1,7 +1,7 @@
 import os
 import sqlite3
 import numpy as np
-from datetime import datetime, date
+from datetime import date
 
 class Model:
     def __init__(self):
