@@ -3,11 +3,12 @@ from PySide6 import QtCore
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
+from apscheduler.schedulers.qt import QtScheduler
 import sys
 from PySide6.QtWidgets import QWidget
 
 class taskRecorder(QWidget):
-    def __init__(self, steps):
+    def __init__(self):
         super().__init__()
         hlay = QHBoxLayout(self)
         hlay.setContentsMargins(0,0,0,0)
@@ -24,7 +25,6 @@ class taskRecorder(QWidget):
             QProgressBar::chunk:hover {background-color: #8a8a8a; width: 1px;}
         """)
         # for timing
-        self.steps = steps
         self.step = 0
         self.recording = False
         self.timer = QTimer(self)
@@ -38,9 +38,13 @@ class taskRecorder(QWidget):
         hlay.addWidget(self.duration)
         hlay.addWidget(self.btn)
         self.setLayout(hlay)
+    def get_step(self):
+        return self.step
     def set_step(self, step):
         self.step = step
         self.duration.setText(str(self.step))
+    def get_name(self):
+        return self.label.text()
     def set_name(self, name):
         self.label.setText(name)
     def update_time(self):
@@ -159,3 +163,17 @@ class ProgressDelegate(QStyledItemDelegate):
         opt.text = "{}%".format(progress)
         opt.textVisible = True
         QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)
+
+class Scheduler(QtCore.QObject):
+    dateChanges = QtCore.Signal()
+    def __init__(self):
+        super().__init__()
+        self.id = 'sched'
+        self.sched = QtScheduler()
+    
+    def start(self, hour, minute):
+        self.sched.add_job(self.date_changes, 'cron', hour=hour, minute=minute)
+        self.sched.start()
+    
+    def date_changes(self):
+        self.dateChanges.emit()
