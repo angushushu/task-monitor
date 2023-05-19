@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QWidget
 class taskRecorder(QWidget):
     def __init__(self):
         super().__init__()
+
         hlay = QHBoxLayout(self)
         hlay.setContentsMargins(0,0,0,0)
         hlay.setSpacing(0)
@@ -18,11 +19,12 @@ class taskRecorder(QWidget):
         self.progress = QProgressBar()
         self.progress.setMinimum(0)
         self.progress.setMaximum(100)
+        # print(self.metaObject().className())
+        # self.setProperty("class", "recorder")
         self.progress.setStyleSheet("""
-            QProgressBar { border: 0px solid grey; border-radius: 0px; text-align: center; }
-            QProgressBar:hover { background-color: #e3e3e3; }
-            QProgressBar::chunk {background-color: #b5b5b5; width: 1px;}
-            QProgressBar::chunk:hover {background-color: #8a8a8a; width: 1px;}
+            QProgressBar { border: 0px solid grey; border-radius: 0px; text-align: center; background-color: transparent}
+            QProgressBar::chunk {background-color: #63cf80; width: 1px;}
+            QProgressBar::chunk:hover { background-color: #6ee68e; }
         """)
         # for timing
         self.step = 0

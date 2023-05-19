@@ -15,7 +15,7 @@ class Controller:
         stopped = self.view.date_change()
         self.model.save_records()
         self.model.date_change()
-        temp = self.model.load_steps()
+        # temp = self.model.load_steps()
         # print(temp)
         # self.view.set_data(temp) #
         self.view.date_changed(stopped)
@@ -24,8 +24,13 @@ class Controller:
     def add_task(self):
         # print('>> add_task')
         task_name = self.view.get_new_task_name()
-        self.model.add_task(task_name)
-        self.view.add_task_recorder(task_name)
+        if self.model.exist_task(task_name):
+            self.view.msg_window("Existed", "The task existed", warning=True)
+        elif task_name == '':
+            self.view.msg_window("Empty name", "The task name shouldn't be empty", warning=True)
+        else:
+            self.model.add_task(task_name)
+            self.view.add_task_recorder(task_name)
     
     def remove_task(self):
         # print('>> remove_task')
