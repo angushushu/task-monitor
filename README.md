@@ -3,7 +3,7 @@ A task monitor for self-regulation
 
 #### How to use (beta version)
 **.exe:**<br>
-Download the beta version and unzip, double click the demo1.exe in dist folder<br>
+Download the beta version and unzip, double click the App.exe in the extracted folder<br>
 
 **.py:**<br>
 pip install numpy<br>
