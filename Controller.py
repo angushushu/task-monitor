@@ -1,17 +1,21 @@
+from datetime import date
+
 class Controller:
     def __init__(self, model, view):
         self.view = view
         self.model = model
-        self.view.start_scheduler(1,14)
+        self.view.start_scheduler(0,1)
         self.view.attach2controller(self)
         self.model.create_tables()
+        # print('1:',self.model.steps)
         temp = self.model.load_steps()
+        # print('2:',self.model.steps)
         # print('>> data read:', temp)
         self.view.set_data(temp)
         self.view.update_ratio()
 
     def date_change(self):
-        # print('>> date_change')
+        print('>> date_change')
         stopped = self.view.date_change()
         self.model.save_records()
         self.model.date_change()
@@ -50,6 +54,7 @@ class Controller:
     def load_combobox(self):
         # print('>> load_combobox')
         tasks = self.model.get_tasks()
+        # print(tasks)
         self.view.combobox_load_tasks(tasks)
     
     def show_records(self):

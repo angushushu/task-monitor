@@ -1,10 +1,9 @@
-import typing
 from PySide6 import QtCore
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
 from apscheduler.schedulers.qt import QtScheduler
-import sys
+from datetime import timedelta
 from PySide6.QtWidgets import QWidget
 
 class taskRecorder(QWidget):
@@ -22,7 +21,13 @@ class taskRecorder(QWidget):
         # print(self.metaObject().className())
         # self.setProperty("class", "recorder")
         self.progress.setStyleSheet("""
-            QProgressBar { border: 0px solid grey; border-radius: 0px; text-align: center; background-color: transparent}
+            QProgressBar {
+                border: 0px solid grey;
+                border-radius: 0px;
+                text-align: center;
+                background-color: transparent;
+                padding: 0 10px;
+            }
             QProgressBar::chunk {background-color: #63cf80; width: 1px;}
             QProgressBar::chunk:hover { background-color: #6ee68e; }
         """)
@@ -35,6 +40,22 @@ class taskRecorder(QWidget):
         self.duration.setFixedWidth(50)
 
         self.btn = QPushButton("run")
+        self.btn.setFlat(True)
+        self.btn.setStyleSheet("""
+            QPushButton {
+                background-color:transparent;
+                width:40px;
+                border:0px solid rgba(0,0,0,0.2);
+                border-radius:2px;
+                padding:0 5px;
+            }
+            QPushButton:pressed {
+                border:0px solid rgba(0,0,0,0.5)
+            }
+            QPushButton:hover {
+                background-color:rgba(0,0,0,0.1);
+            }
+        """)
         hlay.addWidget(self.label)
         hlay.addWidget(self.progress)
         hlay.addWidget(self.duration)
@@ -44,14 +65,18 @@ class taskRecorder(QWidget):
         return self.step
     def set_step(self, step):
         self.step = step
-        self.duration.setText(str(self.step))
+        m, s = divmod(self.step, 60)
+        h, m = divmod(m, 60)
+        self.duration.setText(f'{h:02d}:{m:02d}:{s:02d}')
     def get_name(self):
         return self.label.text()
     def set_name(self, name):
         self.label.setText(name)
     def update_time(self):
         self.step += 1
-        self.duration.setText(str(self.step))
+        m, s = divmod(self.step, 60)
+        h, m = divmod(m, 60)
+        self.duration.setText(f'{h:02d}:{m:02d}:{s:02d}')
 
 class CheckableComboBox(QComboBox):
     popupAboutToBeShown = QtCore.Signal()
@@ -162,9 +187,13 @@ class ProgressDelegate(QStyledItemDelegate):
         opt.minimum = 0
         opt.maximum = 100
         opt.progress = progress
-        opt.text = "{}%".format(progress)
+        opt.text = format(progress, '.2f')
         opt.textVisible = True
-        QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)
+        opt.textAlignment = QtCore.Qt.AlignCenter
+        # opt.palette.setBrush(QPalette.Disabled, QPalette.Base, QBrush(Qt.red))
+        # QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)
+        QApplication.style().drawControl(QStyle.CE_ProgressBarContents, opt, painter)
+        QApplication.style().drawControl(QStyle.CE_ProgressBarLabel, opt, painter)
 
 class Scheduler(QtCore.QObject):
     dateChanges = QtCore.Signal()

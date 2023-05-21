@@ -28,22 +28,13 @@ class Model:
         conn.close()
     
     def get_tasks(self):
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute(f"""
-            SELECT tasks.taskid, tasks.task
-            FROM tasks
-        """)
-        tasks = c.fetchall()
-        conn.commit()
-        conn.close()
-        return tasks
+        return self.steps.keys()
 
-    def load_records(self, *, tasks=None, date=date.today()):
+    def load_records(self, *, tasks=None, date=None):
         check = None
         if tasks is not None:
-            list = f'({tasks[0]})' if len(tasks) == 1 else str(tuple(tasks))
-            check = f"""WHERE task IN {list}"""
+            check = f"WHERE task='{tasks[0]}'" if len(tasks) == 1 else f"WHERE task IN {str(tuple(tasks))}"
+            # check = f"""WHERE task IN {list}"""
         elif date is not None:
             check = f"""WHERE records.date="{str(date)}" """
         else:
@@ -59,6 +50,19 @@ class Model:
         conn.commit()
         conn.close()
         return records
+
+    def load_tasks(self):
+        conn = sqlite3.connect(self.db_path)
+        cur = conn.cursor()
+        cur.execute(f"""SELECT task FROM records""")
+        tasks = cur.fetchall()
+        # print('tasks',tasks)
+        for t in tasks:
+            self.steps[t[0]] = 0
+        conn.commit()
+        conn.close()
+        # print(self.steps)
+        return tasks
     
     def load_dates(self):
         conn = sqlite3.connect(self.db_path)
@@ -92,10 +96,11 @@ class Model:
     
     def load_steps(self):
         self.steps.clear()
-        records = self.load_records()
+        self.load_tasks()
+        records = self.load_records(date=date.today())
         for record in records:
             self.steps[record[0]] = record[2]
-        return records
+        return self.steps
 
     def exist_task(self, task):
         return task in self.steps
@@ -134,7 +139,6 @@ class Model:
                     INSERT INTO tasks (task)
                     VALUES ("{task}")
                 """)
-            res = c.fetchone()
             c.execute("""INSERT INTO records VALUES 
                 (:date,:task,:time)
             """,
@@ -168,4 +172,5 @@ class Model:
 
     def date_change(self):
         self.date = date.today()
-        self.steps = dict()
+        for t in self.steps:
+            self.steps[t] = 0

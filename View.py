@@ -10,17 +10,18 @@ from PySide6.QtWidgets import QMessageBox
 import Components
 import os
 
-class View(QtWidgets.QWidget):
-    def __init__(self, MainWindow, Model):
+class View(QtWidgets.QMainWindow):
+    def __init__(self, Model):
+        super().__init__()
         self.sched = Components.Scheduler()
         self.model = Model
-        self.MainWindow = MainWindow
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(698, 390)
+        self = self
+        self.setObjectName("self")
+        self.resize(698, 390)
         pixmap = QtGui.QPixmap(os.path.dirname(__file__)+"\icon.ico")
         icon = QtGui.QIcon(pixmap)
-        self.MainWindow.setWindowIcon(icon)
-        self.centralwidget = QtWidgets.QWidget(parent=MainWindow)
+        self.setWindowIcon(icon)
+        self.centralwidget = QtWidgets.QWidget(parent=self)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -50,6 +51,11 @@ class View(QtWidgets.QWidget):
         self.task_list = QtWidgets.QListWidget(parent=self.tab_1)
         self.task_list.setObjectName("task_list")
         self.gridLayout_2.addWidget(self.task_list, 1, 0, 1, 5)
+        self.task_list.setStyleSheet("""
+            QListWidget::item:hover {
+                background-color:rgba(0,0,0,0.05)
+            }
+        """)
         self.task_edit = QtWidgets.QLineEdit(parent=self.tab_1)
         self.task_edit.setObjectName("task_edit")
         self.gridLayout_2.addWidget(self.task_edit, 0, 0, 1, 1)
@@ -73,29 +79,26 @@ class View(QtWidgets.QWidget):
         self.gridLayout_3.addWidget(self.tableWidget, 1, 0, 1, 3)
         self.tabs.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.tabs)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(parent=MainWindow)
+        self.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(parent=self)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 698, 22))
         self.menubar.setObjectName("menubar")
-        MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(parent=MainWindow)
+        self.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(parent=self)
         self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
+        self.setStatusBar(self.statusbar)
 
-        self.retranslateUi(MainWindow)
+        self.retranslateUi()
         self.tabs.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        QtCore.QMetaObject.connectSlotsByName(self)
     
     def start_scheduler(self, hour, minute):
         self.sched.start(hour, minute)
 
-    def show(self):
-        self.MainWindow.show()
-
     def set_data(self, data):
         # print('data:',data)
-        for r in data:
-            self.add_task_recorder(r[0],r[2])
+        for t in data:
+            self.add_task_recorder(t,data[t])
     
     def msg_window(self, title='', content='', *, warning=False):
         type = QMessageBox.Warning if warning else QMessageBox.Information
@@ -152,6 +155,7 @@ class View(QtWidgets.QWidget):
             self.update_ratio()
     
     def update_ratio(self):
+        print('self.model', type(self.model))
         max_step = self.model.get_max_step()
         if max_step is None:
             return
@@ -217,16 +221,16 @@ class View(QtWidgets.QWidget):
                 recorder.btn.setText('stop')
                 recorder.timer.start(1000)
 
-    def retranslateUi(self, MainWindow):
+    def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "TaskMonitor"))
-        self.add_btn.setText(_translate("MainWindow", "Add"))
-        self.clr_btn.setText(_translate("MainWindow", "Clear"))
-        self.rmv_btn.setText(_translate("MainWindow", "Remove"))
-        self.save_btn.setText(_translate("MainWindow", "Save"))
-        self.set_btn.setText(_translate("MainWindow", "Set"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_1), _translate("MainWindow", "Today"))
-        self.tabs.setTabText(self.tabs.indexOf(self.tab_2), _translate("MainWindow", "Across days"))
+        self.setWindowTitle(_translate("self", "TaskMonitor"))
+        self.add_btn.setText(_translate("self", "Add"))
+        self.clr_btn.setText(_translate("self", "Clear"))
+        self.rmv_btn.setText(_translate("self", "Remove"))
+        self.save_btn.setText(_translate("self", "Save"))
+        self.set_btn.setText(_translate("self", "Set"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_1), _translate("self", "Today"))
+        self.tabs.setTabText(self.tabs.indexOf(self.tab_2), _translate("self", "Across days"))
 
     def attach2controller(self, controller):
         self.add_btn.clicked.connect(controller.add_task)
@@ -236,3 +240,13 @@ class View(QtWidgets.QWidget):
         self.set_btn.clicked.connect(controller.show_records)
         self.comboBox.popupAboutToBeShown.connect(controller.load_combobox)
         self.sched.dateChanges.connect(controller.date_change)
+    
+    def closeEvent(self, event):
+        msg = QMessageBox()
+        reply = msg.question(self, "You want to save?", "You want to save?")
+        if reply == QMessageBox.Yes:
+            self.model.save_records()
+            event.accept()
+        else:
+            event.ignore()
+        super(View, self).closeEvent(event)
