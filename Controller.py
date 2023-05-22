@@ -54,7 +54,7 @@ class Controller:
     def load_combobox(self):
         # print('>> load_combobox')
         tasks = self.model.get_tasks()
-        # print(tasks)
+        print(tasks)
         self.view.combobox_load_tasks(tasks)
     
     def show_records(self):
@@ -63,3 +63,5 @@ class Controller:
         if len(tasks) > 0:
             (table_data, date_total) = self.model.get_table_data(tasks)
             self.view.show_records(tasks, table_data, date_total)
+        else:
+            self.view.reset_table()

@@ -1,4 +1,5 @@
 from PySide6 import QtCore
+import PySide6.QtGui
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
 from PySide6.QtCore import *
@@ -7,9 +8,10 @@ from datetime import timedelta
 from PySide6.QtWidgets import QWidget
 
 class taskRecorder(QWidget):
-    def __init__(self):
+    renameTask = QtCore.Signal()
+    def __init__(self, parent=None):
         super().__init__()
-
+        self.parent = parent
         hlay = QHBoxLayout(self)
         hlay.setContentsMargins(0,0,0,0)
         hlay.setSpacing(0)
@@ -31,6 +33,7 @@ class taskRecorder(QWidget):
             QProgressBar::chunk {background-color: #63cf80; width: 1px;}
             QProgressBar::chunk:hover { background-color: #6ee68e; }
         """)
+
         # for timing
         self.step = 0
         self.recording = False
@@ -61,6 +64,9 @@ class taskRecorder(QWidget):
         hlay.addWidget(self.duration)
         hlay.addWidget(self.btn)
         self.setLayout(hlay)
+
+        # self.setContextMenuPolicy(Qt.CustomContextMenu)
+        # self.customContextMenuRequested.connect(self.contextMenuEvent)
     def get_step(self):
         return self.step
     def set_step(self, step):
@@ -71,12 +77,20 @@ class taskRecorder(QWidget):
     def get_name(self):
         return self.label.text()
     def set_name(self, name):
+        print('name',name)
         self.label.setText(name)
     def update_time(self):
         self.step += 1
         m, s = divmod(self.step, 60)
         h, m = divmod(m, 60)
         self.duration.setText(f'{h:02d}:{m:02d}:{s:02d}')
+    def contextMenuEvent(self, event):
+        print('menu')
+        self.menu = QMenu(self)
+        action1 = self.menu.addAction('Rename')
+        action1.triggered.connect(self.renameTask.emit)
+        self.menu.exec(event.globalPos())
+        # return super().contextMenuEvent(event)
 
 class CheckableComboBox(QComboBox):
     popupAboutToBeShown = QtCore.Signal()
@@ -106,6 +120,29 @@ class CheckableComboBox(QComboBox):
         self.closeOnLineEditClick = False
         # Prevent popup from closing when clicking on an item
         self.view().viewport().installEventFilter(self)
+        # menu for clean or select all
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showMenu)
+    def showMenu(self, pos):
+        print('showmenu')
+        # self.hidePopup()
+        menu = QMenu()
+        clear = menu.addAction("Clear", self.clearSelection)
+        all = menu.addAction("All", self.selectAll)
+        action = menu.exec(self.mapToGlobal(pos))
+    def clearSelection(self):
+        print('clear')
+        for i in range(self.model().rowCount()):
+            self.model().item(i).setCheckState(Qt.Unchecked)
+    def selectAll(self):
+        print('all')
+        cnt = self.model().rowCount()
+        print('cnt',cnt)
+        if cnt == 0:
+            self.popupAboutToBeShown.emit() # to load the tasks for the first time
+            cnt = self.model().rowCount()
+        for i in range(cnt):
+            self.model().item(i).setCheckState(Qt.Checked)
     def resizeEvent(self, event):
         # Recompute text to elide as needed
         self.updateText()
@@ -113,7 +150,8 @@ class CheckableComboBox(QComboBox):
     def eventFilter(self, object, event):
         if object == self.lineEdit():
             if event.type() == QEvent.MouseButtonRelease:
-                if self.closeOnLineEditClick:
+                # if self.closeOnLineEditClick:
+                if self.closeOnLineEditClick or event.button() == Qt.RightButton:
                     self.hidePopup()
                 else:
                     self.showPopup()
@@ -121,6 +159,9 @@ class CheckableComboBox(QComboBox):
             return False
         if object == self.view().viewport():
             if event.type() == QEvent.MouseButtonRelease:
+                if event.button() == Qt.RightButton: # added for menu
+                    self.showMenu(event.pos())
+                    return True
                 index = self.view().indexAt(event.pos())
                 item = self.model().item(index.row())
                 if item.checkState() == Qt.Checked:

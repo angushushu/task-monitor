@@ -123,12 +123,22 @@ class View(QtWidgets.QMainWindow):
     def add_task_recorder(self, task, step=0):
         self.task_edit.clear()
         item = QtWidgets.QListWidgetItem()
-        recorder = Components.taskRecorder()
+        recorder = Components.taskRecorder(self)
         recorder.set_step(step)
         recorder.btn.clicked.connect(lambda:self.start_stop(recorder))
-        recorder.set_name(task)
+        recorder.renameTask.connect(lambda:self.rename_task(recorder))
+        recorder.set_name(str(task))
         self.task_list.addItem(item)
         self.task_list.setItemWidget(item, recorder)
+    
+    def rename_task(self, recorder):
+        print('hi')
+        old = recorder.get_name()
+        new, ok = QtWidgets.QInputDialog.getText(self, 'Rename', 'New name：')
+        if not (ok and new and (new not in self.model.steps)):
+            return
+        self.model.rename_task(old, new)
+        recorder.set_name(new)        
     
     def remove_task(self):
         selected = self.task_list.currentRow()
@@ -195,6 +205,9 @@ class View(QtWidgets.QMainWindow):
                 progress = QtWidgets.QTableWidgetItem()
                 progress.setData(QtCore.Qt.UserRole+1000, table_data[r][c])
                 self.tableWidget.setItem(r, c+1, progress)
+        
+    def reset_table(self):
+        self.tableWidget.reset()
 
     def saved(self):
         self.msg_window("Succeed", "Records saved into database")

@@ -14,15 +14,17 @@ class Model:
 
     def create_tables(self):
         conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA foreign_keys = ON")
         c = conn.cursor()
         c.execute("""CREATE TABLE if not exists tasks(
-            task TEXT PRIMARY KEY
+            taskid INTEGER PRIMARY KEY AUTOINCREMENT,
+            task TEXT
             )""")
         c.execute("""CREATE TABLE if not exists records(
             date TEXT,
-            task TEXT,
+            taskid INTEGER,
             time INTEGER,
-            FOREIGN KEY(task) REFERENCES tasks(task)
+            FOREIGN KEY(taskid) REFERENCES tasks(taskid) ON DELETE CASCADE
             )""")
         conn.commit()
         conn.close()
@@ -42,9 +44,9 @@ class Model:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         cur.execute(f"""
-            SELECT records.task, records.date, records.time
-            FROM records
-            {check}
+            SELECT tasks.task, records.date, records.time
+            FROM tasks, records
+            {check} AND tasks.taskid=records.taskid
         """)
         records = cur.fetchall()
         conn.commit()
@@ -54,7 +56,7 @@ class Model:
     def load_tasks(self):
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
-        cur.execute(f"""SELECT task FROM records""")
+        cur.execute(f"""SELECT task FROM tasks""")
         tasks = cur.fetchall()
         # print('tasks',tasks)
         for t in tasks:
@@ -98,6 +100,7 @@ class Model:
         self.steps.clear()
         self.load_tasks()
         records = self.load_records(date=date.today())
+        print('records', records)
         for record in records:
             self.steps[record[0]] = record[2]
         return self.steps
@@ -113,18 +116,36 @@ class Model:
             return
         else:
             self.steps[task] = 0
-
-    def remove_task(self, task):
+    
+    def rename_task(self, old, new):
         conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute(f"""
-            DELETE FROM records WHERE task={task}
+        cur = conn.cursor()
+        # change name, but not the records
+        cur.execute(f"""
+            UPDATE tasks
+            SET task="{new}"
+            WHERE task={old}
         """)
+        self.steps[new] = self.steps.pop(old)
         conn.commit()
         conn.close()
 
-    def save_records(self):
+    def remove_task(self, task):
         conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA foreign_keys = ON")
+        c = conn.cursor()
+        c.execute(f"""
+            DELETE FROM tasks
+            WHERE tasks.task={task}
+        """)
+        conn.commit()
+        conn.close()
+        self.steps.pop(task)
+
+    def save_records(self):
+        self.date = date.today()
+        conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA foreign_keys = ON")
         c = conn.cursor()
         c.execute(f"""
             DELETE FROM records
@@ -139,12 +160,17 @@ class Model:
                     INSERT INTO tasks (task)
                     VALUES ("{task}")
                 """)
+            c.execute(f"""
+                SELECT taskid from tasks where task="{task}"
+            """)
+            res = c.fetchone()
+            task_id = res[0]
             c.execute("""INSERT INTO records VALUES 
                 (:date,:task,:time)
             """,
                 {
                     'date': str(self.date),
-                    'task': task,
+                    'task': task_id,
                     'time': self.steps[task]
                 })
         conn.commit()
@@ -152,14 +178,12 @@ class Model:
     
     def clear_all(self):
         self.steps.clear()
-        self.date = date.today()
+        # self.date = date.today()
         conn = sqlite3.connect(self.db_path)
+        conn.execute("PRAGMA foreign_keys = ON")
         c = conn.cursor()
         c.execute(f"""
             DELETE FROM tasks
-        """)
-        c.execute(f"""
-            DELETE FROM records
         """)
         conn.commit()
         conn.close()
