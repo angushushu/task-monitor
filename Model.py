@@ -92,9 +92,9 @@ class Model:
         temp = np.array([list(date_total.values())])
         table_data = np.concatenate((table_data, temp.T), axis=1)
         col_max = table_data.max(axis=0)
-        table_data = np.divide(table_data, col_max, out=np.zeros_like(table_data), where=col_max!=0)
-        table_data *= 100
-        return table_data, date_total
+        perc_data = np.divide(table_data, col_max, out=np.zeros_like(table_data), where=col_max!=0)
+        perc_data *= 100
+        return table_data, perc_data, date_total
     
     def load_steps(self):
         self.steps.clear()

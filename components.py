@@ -136,11 +136,8 @@ class CheckableComboBox(QComboBox):
             self.model().item(i).setCheckState(Qt.Unchecked)
     def selectAll(self):
         print('all')
+        self.popupAboutToBeShown.emit() # to load the tasks for the first time
         cnt = self.model().rowCount()
-        print('cnt',cnt)
-        if cnt == 0:
-            self.popupAboutToBeShown.emit() # to load the tasks for the first time
-            cnt = self.model().rowCount()
         for i in range(cnt):
             self.model().item(i).setCheckState(Qt.Checked)
     def resizeEvent(self, event):
@@ -223,6 +220,7 @@ class CheckableComboBox(QComboBox):
 class ProgressDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         progress = index.data(QtCore.Qt.UserRole+1000)
+        # progress = .3
         opt = QStyleOptionProgressBar()
         opt.rect = option.rect
         opt.minimum = 0
@@ -233,7 +231,18 @@ class ProgressDelegate(QStyledItemDelegate):
         opt.textAlignment = QtCore.Qt.AlignCenter
         # opt.palette.setBrush(QPalette.Disabled, QPalette.Base, QBrush(Qt.red))
         # QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)
-        QApplication.style().drawControl(QStyle.CE_ProgressBarContents, opt, painter)
+        # QApplication.style().drawControl(QStyle.CE_ProgressBarContents, opt, painter)
+        if (progress > 0):
+            progBarWidth = float((option.rect.width() * progress) / 100)
+            painter.save()
+            painter.setRenderHint(QPainter.Antialiasing, True)
+            painter.setBrush(QColor(99,207,128,200)) #grigio molto scuro
+            painter.setPen(QColor("transparent"))
+            rect2=QtCore.QRect(option.rect.x(), option.rect.y(), progBarWidth,
+                        option.rect.height())
+            painter.drawRect(rect2)
+            painter.setPen(QColor(QtCore.Qt.white))
+            painter.restore()
         QApplication.style().drawControl(QStyle.CE_ProgressBarLabel, opt, painter)
 
 class Scheduler(QtCore.QObject):

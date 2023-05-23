@@ -60,8 +60,10 @@ class Controller:
     def show_records(self):
         # print('>> show_records')
         tasks = self.view.get_combobox_selected()
+        print('tasks',tasks)
         if len(tasks) > 0:
-            (table_data, date_total) = self.model.get_table_data(tasks)
-            self.view.show_records(tasks, table_data, date_total)
+            (table_data, perc_data, date_total) = self.model.get_table_data(tasks)
+            self.view.show_records(tasks, table_data, perc_data, date_total)
         else:
+            print('reset')
             self.view.reset_table()
