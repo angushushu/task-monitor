@@ -39,6 +39,7 @@ class Controller:
     def remove_task(self):
         # print('>> remove_task')
         remove = self.view.remove_task()
+        print('removing',remove)
         self.model.remove_task(remove)
     
     def clear_tasks(self):

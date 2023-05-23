@@ -136,7 +136,7 @@ class Model:
         c = conn.cursor()
         c.execute(f"""
             DELETE FROM tasks
-            WHERE tasks.task={task}
+            WHERE tasks.task="{task}"
         """)
         conn.commit()
         conn.close()
