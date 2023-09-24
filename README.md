@@ -6,7 +6,7 @@ Today|Across days
 :-------------------------:|:-------------------------:
 ![tab1](https://github.com/angushushu/task-monitor/blob/main/screenshot1.jpg?raw=false) | ![tab2](https://github.com/angushushu/task-monitor/blob/main/screenshot2.jpg?raw=false)
 
-#### How to deploy (beta version)
+### How to deploy (beta version)
 
 **.exe (for Windows):**<br>
 Download and double-click. Notice the single file version doesn't have the icon.
