@@ -50,6 +50,7 @@ class View(QtWidgets.QMainWindow):
         self.gridLayout_2.addWidget(self.save_btn, 0, 4, 1, 1)
 
         self.task_list = QtWidgets.QListWidget(parent=self.tab_1)
+        self.task_list.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.task_list.setObjectName("task_list")
         self.gridLayout_2.addWidget(self.task_list, 1, 0, 1, 5)
         self.task_list.setStyleSheet("""

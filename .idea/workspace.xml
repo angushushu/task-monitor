@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ae200eb9-1e7a-4f46-a343-9964cba077c2" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/build/App/Analysis-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/Analysis-00.toc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/App.exe" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/App.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/App.pkg" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/App.pkg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/COLLECT-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/COLLECT-00.toc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/EXE-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/EXE-00.toc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/PYZ-00.pyz" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/PYZ-00.pyz" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/PYZ-00.toc" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/PYZ-00.toc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/base_library.zip" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/base_library.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/warn-App.txt" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/warn-App.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/App/xref-App.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/App/xref-App.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/App/App.exe" beforeDir="false" afterPath="$PROJECT_DIR$/dist/App/App.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/App/base_library.zip" beforeDir="false" afterPath="$PROJECT_DIR$/dist/App/base_library.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/App/icon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dist/App/list.db" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2QD8fM8U3pFXAzCfwLJTtiu0OyP" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Users/jerry/Desktop/PyQt/taskMonitor"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ae200eb9-1e7a-4f46-a343-9964cba077c2" name="Changes" comment="" />
+      <created>1684876894058</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1684876894058</updated>
+    </task>
+    <servers />
+  </component>
+</project>

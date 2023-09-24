@@ -121,10 +121,11 @@ class Model:
         conn = sqlite3.connect(self.db_path)
         cur = conn.cursor()
         # change name, but not the records
+        print(old, new)
         cur.execute(f"""
             UPDATE tasks
             SET task="{new}"
-            WHERE task={old}
+            WHERE task="{old}"
         """)
         self.steps[new] = self.steps.pop(old)
         conn.commit()
