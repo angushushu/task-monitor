@@ -2,10 +2,12 @@
 A task monitor for self-regulation (clarification: there's no guarantee on the effect of this app)
 It records the ratio and time you spent on each task, you can use it to track your focus shift (you have to start & stop recording manually).
 
-![tab1](https://github.com/angushushu/task-monitor/blob/main/screenshot1.jpg?raw=true)
-![tab2](https://github.com/angushushu/task-monitor/blob/main/screenshot2.jpg?raw=true)
+Today tasks|History
+:----------:|:--------:
+![tab1](https://github.com/angushushu/task-monitor/blob/main/screenshot1.jpg?raw=false) | ![tab2](https://github.com/angushushu/task-monitor/blob/main/screenshot2.jpg?raw=false)
 
 #### How to deploy (beta version)
+
 **.exe (for Windows):**<br>
 Download and double-click. Notice the single file version doesn't have the icon.
 
