@@ -1,4 +1,4 @@
-# task-monitor
+# TaskMonitor
 A task monitor for self-regulation (clarification: there's no guarantee on the effect of this app)
 It records the ratio and time you spent on each task, you can use it to track your focus shift (you have to start & stop recording manually).
 
