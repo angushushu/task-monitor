@@ -25,4 +25,5 @@ pip install apscheduler<br>
 python3 App.py
 
 **Become a contributor**
+
 Hey, I'm new to Github, but I'm always open to contributions!
